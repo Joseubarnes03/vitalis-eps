@@ -1,0 +1,35 @@
+/* === CONFIGURACIÓN GLOBAL === */
+
+/* Evita que haya scroll horizontal (desplazamiento lateral) */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;  /* Oculta scroll horizontal */
+  overflow-y: auto;    /* Mantiene solo scroll vertical */
+  height: 100%;
+  background-color: #CCECFF;
+}
+
+/* Personaliza la barra de desplazamiento vertical (solo 1 limpia y moderna) */
+::-webkit-scrollbar {
+  width: 8px; /* ancho del scroll */
+}
+
+::-webkit-scrollbar-track {
+  background: #e0f3ff; /* color de fondo del carril */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #007AFF; /* color del "dedo" del scroll */
+  border-radius: 10px;
+  border: 2px solid #e0f3ff;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #005FCC;
+}
+
+/* Previene que los ScrollView de React Native Web generen scrolls duplicados */
+#root, #app {
+  overflow: visible !important;
+}

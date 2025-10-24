@@ -1,0 +1,22 @@
+/* Scroll global sin bloqueos */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-y: scroll !important; /* asegura scroll constante */
+  -webkit-overflow-scrolling: touch;
+  background-color: #CCECFF;
+}
+
+/* Evita que React Native Web bloquee el scroll */
+#root {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Para que las vistas largas se ajusten al tamaño real */
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
