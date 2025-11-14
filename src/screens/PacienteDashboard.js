@@ -1,15 +1,60 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Linking, Platform, StatusBar, Dimensions } from 'react-native';
 import { MaterialIcons, FontAwesome, Ionicons, Feather, AntDesign } from '@expo/vector-icons';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { db } from '../firebase/firebaseConfig';
 
 const { width } = Dimensions.get('window');
 
-export default function HomeScreen({ navigation }) {
+export default function PacienteDashboard({ navigation, route }) {
+  // Estados para las citas y datos del paciente
+  const [citasPendientes, setCitasPendientes] = useState([]);
+  const [loadingCitas, setLoadingCitas] = useState(true);
+  const [pacienteData, setPacienteData] = useState(null);
+
+  // Recibir datos del paciente desde el login
+  useEffect(() => {
+    if (route.params?.userData) {
+      setPacienteData(route.params.userData);
+    }
+  }, [route.params]);
+
   // Funciones de utilidad
   const handleSocialPress = (url) => Linking.canOpenURL(url).then(supported => supported && Linking.openURL(url));
   const openPhone = () => Linking.openURL(Platform.OS === 'android' ? 'tel:18000123456' : 'telprompt:18000123456');
   const openEmail = () => Linking.openURL('mailto:contacto@vitaliseps.com?subject=Consulta%20Vitalis%20EPS');
   const handleLogout = () => navigation.navigate('Login');
+
+  // Cargar citas del paciente
+  useEffect(() => {
+    const cargarCitasPaciente = async () => {
+      try {
+        if (pacienteData?.cedula) {
+          const q = query(
+            collection(db, 'citas'),
+            where('pacienteCedula', '==', pacienteData.cedula),
+            orderBy('fechaCreacion', 'desc')
+          );
+          
+          const querySnapshot = await getDocs(q);
+          const citasData = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          
+          setCitasPendientes(citasData);
+        }
+      } catch (error) {
+        console.error('Error cargando citas:', error);
+      } finally {
+        setLoadingCitas(false);
+      }
+    };
+
+    if (pacienteData) {
+      cargarCitasPaciente();
+    }
+  }, [pacienteData]);
 
   // Datos de servicios
   const services = [
@@ -28,6 +73,11 @@ export default function HomeScreen({ navigation }) {
     { title: 'Innovación en telemedicina', date: '5 Julio 2023', image: require('../../assets/tele.png') },
   ];
 
+  // Navegar a Solicitar Cita pasando los datos del paciente
+  const navegarASolicitarCita = () => {
+    navigation.navigate('Solicitarcita', { pacienteData });
+  };
+
   return (
     <View style={styles.mainContainer}>
       {/* Barra de navegación */}
@@ -37,10 +87,15 @@ export default function HomeScreen({ navigation }) {
           <Image source={require('../../assets/vit.png')} style={styles.logo} />
           <Text style={styles.navTitle}>Vitalis EPS</Text>
         </View>
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-          <MaterialIcons name="logout" size={24} color="white" />
-          <Text style={styles.logoutText}>Cerrar sesión</Text>
-        </TouchableOpacity>
+        <View style={styles.userInfo}>
+          <Text style={styles.userName}>
+            {pacienteData?.nombre || 'Paciente'}
+          </Text>
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <MaterialIcons name="logout" size={20} color="white" />
+            <Text style={styles.logoutText}>Cerrar sesión</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Contenido principal */}
@@ -49,8 +104,10 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.bannerContainer}>
           <Image source={require('../../assets/vit.png')} style={styles.bannerImage} />
           <View style={styles.bannerOverlay}>
-            <Text style={styles.bannerTitle}>Cuidando tu salud, cuidando tu vida</Text>
-            <Text style={styles.bannerSubtitle}>Más de 20 años de experiencia en el sector salud</Text>
+            <Text style={styles.bannerTitle}>
+              ¡Bienvenido, {pacienteData?.nombre?.split(' ')[0] || 'Paciente'}!
+            </Text>
+            <Text style={styles.bannerSubtitle}>Cuidando tu salud, cuidando tu vida</Text>
           </View>
         </View>
 
@@ -58,7 +115,7 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.mainActionsContainer}>
           <TouchableOpacity 
             style={[styles.mainButton, styles.primaryButton]}
-            onPress={() => navigation.navigate('Solicitarcita')}
+            onPress={navegarASolicitarCita}
           >
             <MaterialIcons name="event-available" size={28} color="white" />
             <Text style={styles.mainButtonText}>Solicitar Cita</Text>
@@ -71,20 +128,50 @@ export default function HomeScreen({ navigation }) {
             <MaterialIcons name="assignment" size={28} color="white" />
             <Text style={styles.mainButtonText}>Resultados Médicos</Text>
           </TouchableOpacity>
-
         </View>
 
-        {/* Tarjetas de acceso rápido */}
-        <View style={styles.quickAccessContainer}>
-        
-         
-          <TouchableOpacity 
-            style={[styles.mainButton, styles.secondaryButton]}
-            onPress={() => navigation.navigate('HistorialMedico')}
-          >
-            <MaterialIcons name="history" size={28} color="white" />
-            <Text style={styles.mainButtonText}>Historial médico</Text>
-          </TouchableOpacity>
+        {/* Mis Citas Pendientes */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Mis Próximas Citas</Text>
+            <TouchableOpacity onPress={navegarASolicitarCita}>
+              <Text style={styles.seeAll}>Agendar nueva</Text>
+            </TouchableOpacity>
+          </View>
+
+          {loadingCitas ? (
+            <Text style={styles.loadingText}>Cargando citas...</Text>
+          ) : citasPendientes.length > 0 ? (
+            citasPendientes.map((cita, index) => (
+              <View key={cita.id} style={styles.citaCard}>
+                <View style={styles.citaHeader}>
+                  <MaterialIcons name="event" size={20} color="#0E8CA4" />
+                  <Text style={styles.citaDoctor}>Dr. {cita.doctorNombre}</Text>
+                  <Text style={[styles.citaEstado, 
+                    cita.estado === 'confirmada' ? styles.estadoConfirmada : 
+                    cita.estado === 'cancelada' ? styles.estadoCancelada : 
+                    styles.estadoPendiente
+                  ]}>
+                    {cita.estado}
+                  </Text>
+                </View>
+                <Text style={styles.citaEspecialidad}>{cita.especialidad}</Text>
+                <Text style={styles.citaHorario}>📅 {cita.horario}</Text>
+                <Text style={styles.citaFecha}>🕐 {cita.fecha}</Text>
+              </View>
+            ))
+          ) : (
+            <View style={styles.noCitasContainer}>
+              <MaterialIcons name="event-busy" size={40} color="#CCCCCC" />
+              <Text style={styles.noCitasText}>No tienes citas programadas</Text>
+              <TouchableOpacity 
+                style={styles.agendarButton}
+                onPress={navegarASolicitarCita}
+              >
+                <Text style={styles.agendarButtonText}>Agendar mi primera cita</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         {/* Servicios destacados */}
@@ -236,6 +323,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  userInfo: {
+    alignItems: 'flex-end',
+  },
+  userName: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
   logo: {
     width: 30,
     height: 30,
@@ -254,7 +350,7 @@ const styles = StyleSheet.create({
   logoutText: {
     color: 'white',
     marginLeft: 5,
-    fontSize: 14,
+    fontSize: 12,
   },
   scrollContainer: {
     paddingBottom: 80,
@@ -320,28 +416,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 16,
   },
-  // Resto de estilos...
-  quickAccessContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    paddingHorizontal: 10,
-  },
-  quickCard: {
-    width: '30%',
-    borderRadius: 10,
-    padding: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 3,
-  },
-  quickCardText: {
-    color: 'white',
-    fontWeight: 'bold',
-    marginTop: 8,
-    textAlign: 'center',
-    fontSize: 12,
-  },
   section: {
     backgroundColor: 'white',
     borderRadius: 10,
@@ -369,6 +443,86 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontSize: 14,
   },
+  // Estilos para citas pendientes
+  citaCard: {
+    backgroundColor: '#F8F9FF',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#0E8CA4',
+  },
+  citaHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  citaDoctor: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginLeft: 8,
+    flex: 1,
+  },
+  citaEstado: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  estadoPendiente: {
+    backgroundColor: '#FFF3CD',
+    color: '#856404',
+  },
+  estadoConfirmada: {
+    backgroundColor: '#D1ECF1',
+    color: '#0C5460',
+  },
+  estadoCancelada: {
+    backgroundColor: '#F8D7DA',
+    color: '#721C24',
+  },
+  citaEspecialidad: {
+    fontSize: 14,
+    color: '#0E8CA4',
+    marginBottom: 3,
+  },
+  citaHorario: {
+    fontSize: 13,
+    color: '#555',
+    marginBottom: 2,
+  },
+  citaFecha: {
+    fontSize: 13,
+    color: '#777',
+  },
+  noCitasContainer: {
+    alignItems: 'center',
+    padding: 20,
+  },
+  noCitasText: {
+    color: '#666',
+    marginTop: 10,
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  agendarButton: {
+    backgroundColor: '#0E8CA4',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  agendarButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  loadingText: {
+    textAlign: 'center',
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  // Resto de estilos existentes
   servicesScroll: {
     marginHorizontal: -5,
   },

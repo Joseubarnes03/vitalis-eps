@@ -38,10 +38,13 @@ const LoginForm = ({ title, navigation, rolEsperado }) => {
         return;
       }
 
-      // Validar contraseña
+      // Validar contraseña y obtener datos completos del usuario
       let usuarioEncontrado = null;
+      let usuarioId = null;
+      
       querySnapshot.forEach((doc) => {
         usuarioEncontrado = doc.data();
+        usuarioId = doc.id; // Obtener el ID del documento
       });
 
       if (usuarioEncontrado.password !== password) {
@@ -50,10 +53,23 @@ const LoginForm = ({ title, navigation, rolEsperado }) => {
         return;
       }
 
-      // Navegación según el rol
-      if (rolEsperado === 'admin') navigation.navigate('AdminDashboard');
-      else if (rolEsperado === 'medico') navigation.navigate('MedicoDashboard');
-      else if (rolEsperado === 'paciente') navigation.navigate('PacienteDashboard');
+      // Preparar datos del usuario para pasar al dashboard
+      const userData = {
+        id: usuarioId,
+        nombre: usuarioEncontrado.nombre,
+        cedula: usuarioEncontrado.cedula,
+        correo: usuarioEncontrado.correo,
+        rol: usuarioEncontrado.rol
+      };
+
+      // Navegación según el rol CON LOS DATOS DEL USUARIO
+      if (rolEsperado === 'admin') {
+        navigation.navigate('AdminDashboard', { userData });
+      } else if (rolEsperado === 'medico') {
+        navigation.navigate('MedicoDashboard', { userData });
+      } else if (rolEsperado === 'paciente') {
+        navigation.navigate('PacienteDashboard', { userData });
+      }
 
       Alert.alert('Bienvenido', `Hola ${usuarioEncontrado.nombre}`);
 
@@ -155,5 +171,4 @@ const styles = StyleSheet.create({
 });
 
 export default LoginForm;
-
 
