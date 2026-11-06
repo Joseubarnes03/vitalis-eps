@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { esCorreoValido, textoVisitado } from '../utils/citas';
 
 const STORAGE_KEY = 'CITAS';
 const MEDICOS_OPTOMETRIA = [
@@ -13,19 +14,6 @@ const MEDICOS_OPTOMETRIA = [
   'Dr. Carlos Rodríguez - Especialista en Glaucoma',
   'Dra. Laura Martínez - Especialista en Córnea'
 ];
-
-// Validación de correo sin expresiones regulares costosas (evita backtracking)
-const esCorreoValido = (correo) => {
-  const arroba = correo.indexOf('@');
-  const punto = correo.lastIndexOf('.');
-  return arroba > 0 && punto > arroba + 1 && punto < correo.length - 1 && !/\s/.test(correo);
-};
-
-const textoVisitado = (visitado) => {
-  if (visitado === true) return 'Sí';
-  if (visitado === false) return 'No';
-  return 'No especificado';
-};
 
 export default function AgendaCitaOptometria({ navigation }) {
   const [form, setForm] = useState({
