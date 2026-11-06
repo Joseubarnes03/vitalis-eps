@@ -78,6 +78,49 @@ export default function PacienteDashboard({ navigation, route }) {
     navigation.navigate('Solicitarcita', { pacienteData });
   };
 
+  const estiloEstadoCita = (estado) => {
+    if (estado === 'confirmada') return styles.estadoConfirmada;
+    if (estado === 'cancelada') return styles.estadoCancelada;
+    return styles.estadoPendiente;
+  };
+
+  const renderizarCitas = () => {
+    if (loadingCitas) {
+      return <Text style={styles.loadingText}>Cargando citas...</Text>;
+    }
+    if (citasPendientes.length === 0) {
+      return (
+        <View style={styles.noCitasContainer}>
+          <MaterialIcons name="event-busy" size={40} color="#CCCCCC" />
+          <Text style={styles.noCitasText}>No tienes citas programadas</Text>
+          <TouchableOpacity 
+            style={styles.agendarButton}
+            onPress={navegarASolicitarCita}
+          >
+            <Text style={styles.agendarButtonText}>Agendar mi primera cita</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    return (
+      citasPendientes.map((cita) => (
+        <View key={cita.id} style={styles.citaCard}>
+                <View style={styles.citaHeader}>
+                  <MaterialIcons name="event" size={20} color="#0E8CA4" />
+                  <Text style={styles.citaDoctor}>Dr. {cita.doctorNombre}</Text>
+                  <Text style={[styles.citaEstado, estiloEstadoCita(cita.estado)]}>
+                    {cita.estado}
+                  </Text>
+                </View>
+                <Text style={styles.citaEspecialidad}>{cita.especialidad}</Text>
+                <Text style={styles.citaHorario}>📅 {cita.horario}</Text>
+                <Text style={styles.citaFecha}>🕐 {cita.fecha}</Text>
+              </View>
+            ))
+    );
+  };
+
+
   return (
     <View style={styles.mainContainer}>
       {/* Barra de navegación */}
@@ -139,39 +182,7 @@ export default function PacienteDashboard({ navigation, route }) {
             </TouchableOpacity>
           </View>
 
-          {loadingCitas ? (
-            <Text style={styles.loadingText}>Cargando citas...</Text>
-          ) : citasPendientes.length > 0 ? (
-            citasPendientes.map((cita, index) => (
-              <View key={cita.id} style={styles.citaCard}>
-                <View style={styles.citaHeader}>
-                  <MaterialIcons name="event" size={20} color="#0E8CA4" />
-                  <Text style={styles.citaDoctor}>Dr. {cita.doctorNombre}</Text>
-                  <Text style={[styles.citaEstado, 
-                    cita.estado === 'confirmada' ? styles.estadoConfirmada : 
-                    cita.estado === 'cancelada' ? styles.estadoCancelada : 
-                    styles.estadoPendiente
-                  ]}>
-                    {cita.estado}
-                  </Text>
-                </View>
-                <Text style={styles.citaEspecialidad}>{cita.especialidad}</Text>
-                <Text style={styles.citaHorario}>📅 {cita.horario}</Text>
-                <Text style={styles.citaFecha}>🕐 {cita.fecha}</Text>
-              </View>
-            ))
-          ) : (
-            <View style={styles.noCitasContainer}>
-              <MaterialIcons name="event-busy" size={40} color="#CCCCCC" />
-              <Text style={styles.noCitasText}>No tienes citas programadas</Text>
-              <TouchableOpacity 
-                style={styles.agendarButton}
-                onPress={navegarASolicitarCita}
-              >
-                <Text style={styles.agendarButtonText}>Agendar mi primera cita</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+          {renderizarCitas()}
         </View>
 
         {/* Servicios destacados */}
@@ -183,8 +194,8 @@ export default function PacienteDashboard({ navigation, route }) {
             </TouchableOpacity>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.servicesScroll}>
-            {services.map((service, index) => (
-              <View key={index} style={[styles.serviceCard, { borderLeftColor: service.color }]}>
+            {services.map((service) => (
+              <View key={service.name} style={[styles.serviceCard, { borderLeftColor: service.color }]}>
                 <MaterialIcons name={service.icon} size={30} color={service.color} />
                 <Text style={styles.serviceName}>{service.name}</Text>
                 <Text style={styles.serviceInfo}>+50 especialistas</Text>
@@ -196,8 +207,8 @@ export default function PacienteDashboard({ navigation, route }) {
         {/* Noticias y actualizaciones */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Noticias y actualizaciones</Text>
-          {news.map((item, index) => (
-            <TouchableOpacity key={index} style={styles.newsCard}>
+          {news.map((item) => (
+            <TouchableOpacity key={item.title} style={styles.newsCard}>
               <Image source={item.image} style={styles.newsImage} />
               <View style={styles.newsContent}>
                 <Text style={styles.newsTitle}>{item.title}</Text>
@@ -233,7 +244,7 @@ export default function PacienteDashboard({ navigation, route }) {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.testimonialsScroll}>
             <View style={styles.testimonialCard}>
               <Feather name="user" size={40} color="#0E8CA4" />
-              <Text style={styles.testimonialText}>"Excelente atención en mi última consulta, el médico fue muy profesional"</Text>
+              <Text style={styles.testimonialText}>&quot;Excelente atención en mi última consulta, el médico fue muy profesional&quot;</Text>
               <Text style={styles.testimonialAuthor}>- María G.</Text>
               <AntDesign name="star" size={16} color="#FFC107" />
               <AntDesign name="star" size={16} color="#FFC107" />
@@ -243,7 +254,7 @@ export default function PacienteDashboard({ navigation, route }) {
             </View>
             <View style={styles.testimonialCard}>
               <Feather name="user" size={40} color="#0E8CA4" />
-              <Text style={styles.testimonialText}>"Rápido servicio de urgencias cuando más lo necesité"</Text>
+              <Text style={styles.testimonialText}>&quot;Rápido servicio de urgencias cuando más lo necesité&quot;</Text>
               <Text style={styles.testimonialAuthor}>- Carlos M.</Text>
               <AntDesign name="star" size={16} color="#FFC107" />
               <AntDesign name="star" size={16} color="#FFC107" />

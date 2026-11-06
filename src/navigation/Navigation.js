@@ -5,7 +5,6 @@ import LoginMedico from '../screens/LoginMedico';
 import LoginPaciente from '../screens/LoginPaciente';
 import LoginAdmin from '../screens/LoginAdmin';
 
-navigation.navigate('HistorialScreen', { auth: userAuthData });
 const Stack = createStackNavigator();
 
 const Navigation = () => {

@@ -3,13 +3,13 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBF_Rn-hvCegw63J2p2H1cYMXnjkX-TLSQ",
-  authDomain: "vitalis-eps-88435.firebaseapp.com",
-  projectId: "vitalis-eps-88435",
-  storageBucket: "vitalis-eps-88435.appspot.com",
-  messagingSenderId: "152583685014",
-  appId: "1:152583685014:web:4b05ae7992fcc75def53b7",
-  measurementId: "G-2HRJR3JHT4"
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 // Verifica si Firebase ya fue inicializado

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Platform, ScrollView } from 'react-native';
-import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as FileSystem from 'expo-file-system';
@@ -13,6 +13,19 @@ const ODONTOLOGOS = [
   'Dra. Laura Vargas - Periodoncia',
   'Dr. Javier Ramírez - Endodoncia'
 ];
+
+// Validación de correo sin expresiones regulares costosas (evita backtracking)
+const esCorreoValido = (correo) => {
+  const arroba = correo.indexOf('@');
+  const punto = correo.lastIndexOf('.');
+  return arroba > 0 && punto > arroba + 1 && punto < correo.length - 1 && !/\s/.test(correo);
+};
+
+const textoVisitado = (visitado) => {
+  if (visitado === true) return 'Sí';
+  if (visitado === false) return 'No';
+  return 'No especificado';
+};
 
 export default function AgendaCitaOdontologia({ navigation }) {
   const [form, setForm] = useState({
@@ -88,17 +101,19 @@ export default function AgendaCitaOdontologia({ navigation }) {
   };
 
   const validarFormulario = () => {
-    const { dia, hora, nombre, apellido, cedula, correo, odontologo, motivo } = form;
-    const errores = [];
+    // Cada campo obligatorio con su mensaje (evita repetir un "if" por campo)
+    const requeridos = [
+      ['nombre', 'Nombre es requerido'],
+      ['apellido', 'Apellido es requerido'],
+      ['cedula', 'Cédula es requerida'],
+      ['dia', 'Fecha es requerida'],
+      ['hora', 'Hora es requerida'],
+      ['odontologo', 'Odontólogo es requerido'],
+      ['motivo', 'Motivo de consulta es requerido'],
+    ];
+    const errores = requeridos.filter(([clave]) => !form[clave]).map(([, mensaje]) => mensaje);
 
-    if (!nombre) errores.push('Nombre es requerido');
-    if (!apellido) errores.push('Apellido es requerido');
-    if (!cedula) errores.push('Cédula es requerida');
-    if (!correo || !/^\S+@\S+\.\S+$/.test(correo)) errores.push('Correo electrónico no válido');
-    if (!dia) errores.push('Fecha es requerida');
-    if (!hora) errores.push('Hora es requerida');
-    if (!odontologo) errores.push('Odontólogo es requerido');
-    if (!motivo) errores.push('Motivo de consulta es requerido');
+    if (!form.correo || !esCorreoValido(form.correo)) errores.push('Correo electrónico no válido');
 
     return errores;
   };
@@ -215,7 +230,7 @@ Odontólogo: ${form.odontologo || 'No seleccionado'}
 Motivo: ${form.motivo || 'No especificado'}
 Alergias: ${form.alergias || 'Ninguna registrada'}
 Última visita: ${form.ultimaVisita || 'No registrada'}
-Visitado antes: ${form.visitado === true ? 'Sí' : form.visitado === false ? 'No' : 'No especificado'}`,
+Visitado antes: ${textoVisitado(form.visitado)}`,
       [{ text: 'OK' }]
     );
   };

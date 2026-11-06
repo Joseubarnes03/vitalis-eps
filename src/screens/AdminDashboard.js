@@ -348,6 +348,9 @@ export default function AdminDashboard({ navigation }) {
     );
   }
 
+  const nombreTipo = modalTipo === 'medicos' ? 'Médico' : 'Paciente';
+  const tituloModal = modalModo === 'add' ? `Agregar ${nombreTipo}` : 'Editar Usuario';
+
   return (
    <SafeAreaView style={{ flex: 1, backgroundColor: '#CCECFF' }}>
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
@@ -422,7 +425,7 @@ export default function AdminDashboard({ navigation }) {
       >
         <Animatable.View animation="fadeInUp" duration={300} style={styles.modal}>
           <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
-            <Text style={styles.modalTitle}>{modalModo === 'add' ? `Agregar ${modalTipo === 'medicos' ? 'Médico' : 'Paciente'}` : 'Editar Usuario'}</Text>
+            <Text style={styles.modalTitle}>{tituloModal}</Text>
 
             {/* Campos comunes */}
             <TextInput style={styles.input} placeholder="Cédula" value={formData.cedula} onChangeText={(t) => setFormData({ ...formData, cedula: t })} keyboardType="numeric" />
@@ -520,6 +523,9 @@ export default function AdminDashboard({ navigation }) {
   );
 }
 
+const alturaBarraEstado = StatusBar.currentHeight ? StatusBar.currentHeight + 8 : 24;
+const espacioSuperior = Platform.OS === 'android' ? alturaBarraEstado : 48;
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#CCECFF' },
   header: {
@@ -528,7 +534,7 @@ const styles = StyleSheet.create({
   alignItems: 'center',
   paddingHorizontal: 15,
   paddingBottom: 12,
-  paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ? StatusBar.currentHeight + 8 : 24) : 48,
+  paddingTop: espacioSuperior,
 },
 
   title: { fontSize: 22, fontWeight: 'bold', color: '#004AAD' },
