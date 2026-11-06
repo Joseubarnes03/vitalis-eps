@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -87,6 +87,36 @@ export default function ResultadosMe({ navigation }) {
     }
   };
 
+  const renderizarResultados = () => {
+    if (loading) {
+      return <ActivityIndicator size="large" color="#0E8CA4" />;
+    }
+    if (resultados.length > 0) {
+      return (
+        resultados.map((resultado) => (
+            <View key={resultado.id} style={styles.resultCard}>
+              <View style={styles.resultInfo}>
+                <Text style={styles.resultType}>{resultado.tipo}</Text>
+                <Text style={styles.resultDate}>{resultado.fecha}</Text>
+              </View>
+              
+              <TouchableOpacity 
+                style={styles.downloadButton}
+                onPress={() => descargarResultado(resultado.archivo)}
+              >
+                <MaterialIcons name="cloud-download" size={20} color="#0E8CA4" />
+                <Text style={styles.downloadText}>Descargar</Text>
+              </TouchableOpacity>
+            </View>
+          ))
+      );
+    }
+    if (searchPerformed) {
+      return <Text style={styles.noResultsText}>No se encontraron resultados</Text>;
+    }
+    return null;
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -134,28 +164,7 @@ export default function ResultadosMe({ navigation }) {
           {searchPerformed ? `Resultados encontrados (${resultados.length})` : 'Ingresa tus datos para buscar'}
         </Text>
 
-        {loading ? (
-          <ActivityIndicator size="large" color="#0E8CA4" />
-        ) : resultados.length > 0 ? (
-          resultados.map((resultado) => (
-            <View key={resultado.id} style={styles.resultCard}>
-              <View style={styles.resultInfo}>
-                <Text style={styles.resultType}>{resultado.tipo}</Text>
-                <Text style={styles.resultDate}>{resultado.fecha}</Text>
-              </View>
-              
-              <TouchableOpacity 
-                style={styles.downloadButton}
-                onPress={() => descargarResultado(resultado.archivo)}
-              >
-                <MaterialIcons name="cloud-download" size={20} color="#0E8CA4" />
-                <Text style={styles.downloadText}>Descargar</Text>
-              </TouchableOpacity>
-            </View>
-          ))
-        ) : searchPerformed ? (
-          <Text style={styles.noResultsText}>No se encontraron resultados</Text>
-        ) : null}
+        {renderizarResultados()}
       </View>
     </View>
   );

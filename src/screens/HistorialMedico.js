@@ -5,9 +5,7 @@ import {
   StyleSheet, 
   ScrollView, 
   TouchableOpacity, 
-  TextInput,
-  Modal,
-  Alert 
+  Modal
 } from 'react-native';
 import { MaterialIcons, Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,17 +14,9 @@ export default function HistorialScreen({ navigation }) {
   // Estados
   const [medicalHistory, setMedicalHistory] = useState([]);
   const [filter, setFilter] = useState('Todos');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery] = useState('');
   const [selectedRecord, setSelectedRecord] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [newRecord, setNewRecord] = useState({
-    date: '',
-    type: 'Consulta',
-    doctor: '',
-    specialty: '',
-    diagnosis: '',
-    treatment: ''
-  });
+  const [, setModalVisible] = useState(false);
 
   // Tipos de registros médicos
   const recordTypes = ['Todos', 'Consulta', 'Examen', 'Procedimiento', 'Urgencias'];
@@ -72,15 +62,6 @@ export default function HistorialScreen({ navigation }) {
     }
   };
 
-  // Guardar historial en AsyncStorage
-  const saveMedicalHistory = async (history) => {
-    try {
-      await AsyncStorage.setItem('medicalHistory', JSON.stringify(history));
-    } catch (error) {
-      console.error('Error al guardar historial médico:', error);
-    }
-  };
-
   // Filtrar registros
   const filteredRecords = medicalHistory.filter(record => {
     const matchesFilter = filter === 'Todos' || record.type === filter;
@@ -89,32 +70,6 @@ export default function HistorialScreen({ navigation }) {
                          record.diagnosis.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
-
-  // Agregar nuevo registro
-  const addNewRecord = async () => {
-    if (!newRecord.date || !newRecord.doctor || !newRecord.diagnosis) {
-      Alert.alert('Error', 'Por favor complete los campos obligatorios');
-      return;
-    }
-
-    const recordToAdd = {
-      id: Date.now(),
-      ...newRecord
-    };
-
-    const updatedHistory = [...medicalHistory, recordToAdd];
-    setMedicalHistory(updatedHistory);
-    await saveMedicalHistory(updatedHistory);
-    setModalVisible(false);
-    setNewRecord({
-      date: '',
-      type: 'Consulta',
-      doctor: '',
-      specialty: '',
-      diagnosis: '',
-      treatment: ''
-    });
-  };
 
   // Eliminar registro
   const deleteRecord = async (id) => {

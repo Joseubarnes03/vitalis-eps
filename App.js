@@ -30,7 +30,18 @@ const screens = {
 const Stack = createStackNavigator();
 
 // ✅ Nueva función: precargar usuarios en sus colecciones correctas
+// Las contraseñas de los usuarios de ejemplo vienen de variables de entorno (archivo .env), no del código
+const CLAVES_SEMILLA = {
+  admin: process.env.EXPO_PUBLIC_SEED_ADMIN_PASSWORD,
+  paciente1: process.env.EXPO_PUBLIC_SEED_PACIENTE1_PASSWORD,
+  paciente2: process.env.EXPO_PUBLIC_SEED_PACIENTE2_PASSWORD,
+};
+
 const precargarUsuarios = async () => {
+  if (!CLAVES_SEMILLA.admin || !CLAVES_SEMILLA.paciente1 || !CLAVES_SEMILLA.paciente2) {
+    console.warn('Usuarios de ejemplo no precargados: faltan las variables EXPO_PUBLIC_SEED_* en el archivo .env');
+    return;
+  }
   try {
     // Verificar si el admin ya existe
     const adminRef = doc(collection(db, 'administradores'), 'admin_001');
@@ -40,7 +51,7 @@ const precargarUsuarios = async () => {
       // Administrador
       await setDoc(adminRef, {
         cedula: '1062',
-        password: 'valjose1234',
+        password: CLAVES_SEMILLA.admin,
         nombre: 'admin',
         correo: 'admin@gmail.com',
         rol: 'admin',
@@ -49,7 +60,7 @@ const precargarUsuarios = async () => {
       // Paciente 1
       await setDoc(doc(collection(db, 'pacientes'), 'pac_001'), {
         cedula: '8771',
-        password: '12345',
+        password: CLAVES_SEMILLA.paciente1,
         nombre: 'valentina',
         correo: 'val@gmail.com',
         rol: 'paciente',
@@ -58,7 +69,7 @@ const precargarUsuarios = async () => {
       // Paciente 2
       await setDoc(doc(collection(db, 'pacientes'), 'pac_002'), {
         cedula: '3002',
-        password: 'paciente456',
+        password: CLAVES_SEMILLA.paciente2,
         nombre: 'Ana Torres',
         correo: 'ana@gmail.com',
         rol: 'paciente',
